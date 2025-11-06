@@ -1695,6 +1695,44 @@ class Rt:
 
         return isinstance(response, list)
 
+    def search_assets(
+        self, catalog_id: typing.Union[str, int], search_params: list[dict[str, typing.Any]]
+    ) -> dict[str, typing.Union[int, list[dict[str, str]]]]:
+        """
+        Search assets in a catalog.
+
+        Example::
+
+            client = Rt(...)
+            client.search_assets(1, [{"field": "Name", "value": "NameOfMyAsset"}])
+
+        :param catalog_id: Catalog ID.
+        :param search_params: Params used to filter the results.
+            field: str
+            value: str | int
+            operator: Literal[">", "<", "=", "!=", "LIKE", "NOT LIKE", ">=", "<="] | None
+        :return: Found assets.
+            {
+                'page': 1,
+                'items': [
+                    {'id': '1', '_url': 'https://.../REST/2.0/asset/1', 'type': 'asset'}
+                ],
+                'count': 1,
+                'total': 1,
+                'per_page': 20,
+                'pages': 1
+            }
+        """
+        search_params.append({'field': 'Catalog', 'value': catalog_id, 'operator': '='})
+        response = self.__request('assets', json_data=search_params)
+
+        self.logger.debug(str(response))
+
+        if not isinstance(response, dict):
+            raise UnexpectedResponseError(str(response))
+
+        return response
+
 class AsyncRt:
     r""":term:`API` for Request Tracker according to
     https://docs.bestpractical.com/rt/5.0.2/RT/REST2.html. Interface is based on
@@ -3304,3 +3342,41 @@ class AsyncRt:
         self.logger.debug(str(response))
 
         return isinstance(response, list)
+
+    async def search_assets(
+        self, catalog_id: typing.Union[str, int], search_params: list[dict[str, typing.Any]]
+    ) -> dict[str, typing.Union[int, list[dict[str, str]]]]:
+        """
+        Search assets in a catalog.
+
+        Example::
+
+            client = AsyncRt(...)
+            await client.search_assets(1, [{"field": "Name", "value": "NameOfMyAsset"}])
+
+        :param catalog_id: Catalog ID.
+        :param search_params: Params used to filter the results.
+            field: str
+            value: str | int
+            operator: Literal[">", "<", "=", "!=", "LIKE", "NOT LIKE", ">=", "<="] | None
+        :return: Found assets.
+            {
+                'page': 1,
+                'items': [
+                    {'id': '1', '_url': 'https://localhost:8080/REST/2.0/asset/1', 'type': 'asset'}
+                ],
+                'count': 1,
+                'total': 1,
+                'per_page': 20,
+                'pages': 1
+            }
+        """
+        search_params.append({'field': 'Catalog', 'value': catalog_id, 'operator': '='})
+        response = await self.__request('assets', json_data=search_params)
+
+        self.logger.debug(str(response))
+
+        if not isinstance(response, dict):
+            raise UnexpectedResponseError(str(response))
+
+        return response
