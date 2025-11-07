@@ -451,3 +451,27 @@ async def test_queues(async_rt_connection: rt.rest2.AsyncRt):
 
     with pytest.raises(rt.exceptions.NotFoundError):
         await async_rt_connection.delete_queue(f'Queue {random_string()}')
+
+
+@pytest.mark.asyncio
+async def test_catalog(async_rt_connection: rt.rest2.AsyncRt):
+    catalog = await async_rt_connection.get_catalog(1)
+    assert catalog['id'] == 1
+
+
+@pytest.mark.asyncio
+async def test_assets(async_rt_connection: rt.rest2.AsyncRt):
+    asset_id = await async_rt_connection.create_asset('test', 1, Creator='root')
+    assert asset_id
+
+    asset = await async_rt_connection.get_asset(asset_id)
+    assert asset['id'] == asset_id
+
+    asset_history = [item async for item in async_rt_connection.get_asset_history(asset_id)]
+    assert len(asset_history) == 1
+
+    asset_edited = await async_rt_connection.edit_asset(asset_id, Name='test2')
+    assert asset_edited
+
+    search = await async_rt_connection.search_assets(1, [{'field': 'Name', 'value': 'test2'}])
+    assert search['total'] >= 1
